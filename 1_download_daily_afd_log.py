@@ -28,9 +28,11 @@ def lambda_handler(event, context):
 
     # parse afd page
     afd_homepage_parsed = BeautifulSoup(afd_homepage, 'html.parser')
+    print("Parsed HTML")
 
-    # extract all href attributes on the Articles for Deltion page
+    # extract all href attributes on the Articles for Deletion page
     afd_homepage_links = scraping.extract_ahref(afd_homepage_parsed)
+    print("Obtained URLs: {}".format(afd_homepage_links[0:3]))
 
     # download daily afd logs (i.e. pages in the format https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion/Log/2019_May_22)
     daily_afd = scraping.generate_df_of_daily_logs(afd_homepage_links)
