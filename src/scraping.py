@@ -2,6 +2,7 @@ import boto3
 from bs4 import BeautifulSoup
 import datetime
 import numpy as np
+import os
 import pandas as pd
 import re
 import requests
@@ -12,6 +13,8 @@ s3_buckets = {"scraped":"afd-scraped"}
 outputDirectories = {"Wikipedia:Articles_for_deletion": "Articles_for_deletion/",
                     "daily_afd_log": "daily_afd_log/",
                     "individual_afd_page":"individual_afd_page/",
+                     "individual_afd_page_html": "individual_afd_page_html/",
+                     "individual_afd_discussion_page": "individual_afd_discussion_page/",
                     "individual_wiki_page":"individual_wiki_page/",
                     "voting": "voting/"}
 
@@ -78,6 +81,13 @@ def extract_ahref(parsedHtml):
     return links
 
 def extract_log_id_and_url(parsed):
+    '''
+    Extract an identifier and URL for individual pages nominated for deletion
+    The page ID is stored in the id attribute of span class="mw-headline"
+    The page URL is stored in the a href tag nested under span class="mw-headline"
+    :param parsed: A string in the format [id]___[url]
+    :return:
+    '''
     start = time.time()
     id_url = []
     print("Running extract_log_id_and_url")
@@ -92,6 +102,13 @@ def extract_log_id_and_url(parsed):
 
 @utils.timeit
 def find_afd_stats_by_id(parsed,**kwargs):
+    '''
+     On a daily AFD page, search for the unique identifier of a page that has been nominated for deletion.
+     Return the URL of the page where wikipedia community members vote on the afd decision
+    :param parsed:
+    :param kwargs:
+    :return:
+    '''
     id = kwargs.get('id')
     for dd in parsed.find_all('dd'):
         if id in str(dd):
@@ -105,7 +122,7 @@ def find_afd_stats_by_id(parsed,**kwargs):
 def find_indiv_afd_by_id(parsed,**kwargs):
     '''
     On a daily AFD page, search for the unique identifier of a page that has been nominated for deletion.
-    Return the URL of the page nominated for deletion
+    Return the URL of the nominated page's article for deletion page
     :param parsed:
     :param kwargs:
     :return:
@@ -168,6 +185,13 @@ def open_page(bucket,key,*args,**kwargs):
 
 
 def store_string(string, typeOfRequest, fileName=''):
+    '''
+
+    :param string: A string to write to s3
+    :param typeOfRequest:
+    :param fileName:
+    :return:
+    '''
     if fileName != '':
         s3_client.put_object(Body=bytes(string, 'utf-8'),
                          Bucket=s3_buckets['scraped'],
@@ -184,6 +208,15 @@ def store_string(string, typeOfRequest, fileName=''):
 
 
 def store_html(html_text,typeOfRequest,dataDirectory,output,fileName=''):
+    '''
+
+    :param html_text:
+    :param typeOfRequest:
+    :param dataDirectory:
+    :param output:
+    :param fileName:
+    :return:
+    '''
     start = time.time()
     timestamp = datetime.datetime.now()
     date = str(timestamp).split(" ")[0]
