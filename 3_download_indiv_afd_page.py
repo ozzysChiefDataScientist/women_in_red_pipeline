@@ -45,6 +45,28 @@ def lambda_handler(event, context):
 
         # download the actual html of the page nominated for deletion
         page_url_html = scraping.download_html(page_url, wikipedia_domain)
+        parsed = BeautifulSoup(page_url_html,'html.parser')
+        
+        is_person_by_card = data.is_person_by_card(parsed)
+        is_person_by_category = data.is_person_by_category(parsed)
+        count_she = data.count_she(parsed)
+        count_he = data.count_he(parsed)
+        count_they = data.count_they(parsed)
+        count_nonbinary = data.count_nonbinary(parsed)
+
+        
+        resultsDF = pd.DataFrame({"key": key,
+                                 "is_person_by_card":is_person_by_card,
+                                 "is_person_by_category":is_person_by_category,
+                                 "count_she":count_she,
+                                 "count_he": count_he,
+                                 "count_they": count_they,
+                                 "count_nonbinary": count_nonbinary
+                                 },index=[0])
+        print(resultsDF)
+                                 
+        #resultsString = resultsDF.to_csv( quoting=csv.QUOTE_NONNUMERIC,index=False)
+        #scraping.store_string(resultsString, "individual_afd_page", fileName=row['id'])
 
         # store html to
         scraping.store_html(page_url_html, 'individual_afd_page_html', data_directory, 's3',fileName=page_id)
