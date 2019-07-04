@@ -12,11 +12,11 @@ from src import utils
 s3_buckets = {"scraped":"afd-scraped"}
 outputDirectories = {"Wikipedia:Articles_for_deletion": "Articles_for_deletion/",
                     "daily_afd_log": "daily_afd_log/",
+                    "individual_afd_analysis":"individual_afd_analysis/",
                     "individual_afd_page":"individual_afd_page/",
                      "individual_afd_page_html": "individual_afd_page_html/",
                      "individual_afd_discussion_page": "individual_afd_discussion_page/",
                     "individual_wiki_page":"individual_wiki_page/",
-                     "individual_afd_analysis": "individual_afd_analysis/",
                     "voting": "voting/"}
 
 # intialize connection to S3 resources
@@ -101,13 +101,6 @@ def extract_log_id_and_url(parsed):
     print("Extract URLs time: {}".format(end - start))
     return id_url
 
-def failed_wiki_scrape(parsedHTML,**kwargs):
-    result = parsedHTML.get_text().find("Wikipedia does not have an article with this exact name.")
-    if result == -1:
-        return 'Article exists'
-    else:
-        return 'Article does not exist'
-
 @utils.timeit
 def find_afd_stats_by_id(parsed,**kwargs):
     '''
@@ -169,18 +162,6 @@ def generate_df_of_daily_logs(ahrefList):
     logDF['last_char_as_int'] = logDF['last_char'].apply(lambda x: convertToInt(x))
     
     return logDF[logDF['last_char_as_int']].drop("last_char_as_int",axis=1).drop("last_char",axis=1)
-
-def get_references(parsed,**kwargs):
-    reference_urls = []
-    references = parsed.find('ol', attrs={"class": "references"})
-    if references is not None:
-        for li in references.find_all('li'):
-            for a in li.find_all('a'):
-                link = a.get('href')
-                if link is not None:
-                    if 'http' in link:
-                        reference_urls.append(link)
-    return reference_urls
 
 @utils.timeit
 def open_page(bucket,key,*args,**kwargs):

@@ -65,8 +65,8 @@ def lambda_handler(event, context):
                                  },index=[0])
         print(resultsDF)
                                  
-        #resultsString = resultsDF.to_csv( quoting=csv.QUOTE_NONNUMERIC,index=False)
-        #scraping.store_string(resultsString, "individual_afd_page", fileName=row['id'])
+        resultsString = resultsDF.to_csv( quoting=csv.QUOTE_NONNUMERIC,index=False)
+        scraping.store_string(resultsString, "individual_afd_analysis", fileName=key.split("/")[2].replace(".txt",""))
 
         # store html to
         scraping.store_html(page_url_html, 'individual_afd_page_html', data_directory, 's3',fileName=page_id)
