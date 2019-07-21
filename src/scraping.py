@@ -12,6 +12,7 @@ from src import utils
 s3_buckets = {"scraped":"afd-scraped"}
 outputDirectories = {"Wikipedia:Articles_for_deletion": "Articles_for_deletion/",
                     "daily_afd_log": "daily_afd_log/",
+                    "daily_afd_analysis": "daily_afd_analysis/",
                     "individual_afd_analysis":"individual_afd_analysis/",
                     "individual_afd_page":"individual_afd_page/",
                      "individual_afd_page_html": "individual_afd_page_html/",

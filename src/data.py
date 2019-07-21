@@ -1,3 +1,4 @@
+import io
 import logging
 import numpy as np
 import os
@@ -5,10 +6,23 @@ import pandas as pd
 import boto3
 
 
+def append_dataframes(master_df,new_df):
+    if master_df.shape[0] == 0:
+        master_df = new_df
+    else:
+        master_df = master_df.append(new_df)
+    return master_df
+
 def generate_df_of_files_in_directory(data_directory,data_type,date):
     afd_pages = os.listdir("{}scraped/{}/{}/".format(data_directory,data_type, date))
     afd_pages = pd.DataFrame({"page": afd_pages, "scrape_date": [date] * len(afd_pages)})
     return afd_pages
+
+def get_keys_in_bucket(s3_client,bucket,prefix):
+    keys_response = s3_client.list_objects_v2(Bucket=bucket,Prefix=prefix)
+    contents = keys_response['Contents']
+    keys = [x['Key'] for x in contents]
+    return keys
 
 def return_files_in_bucket(bucket):
     s3 = boto3.resource('s3')
@@ -196,3 +210,31 @@ def extract_runtimes(file, log_type, date_filter=''):
                                      "runtime": runtime}, index=[0])
                 logDF = logDF.append(temp)
     return logDF
+
+def read_csv_on_s3(s3_client,bucket,key):
+    obj = s3_client.get_object(Bucket=bucket, Key=key)
+    df = pd.read_csv(io.BytesIO(obj['Body'].read()))
+    return df
+
+def select_gender_identity(is_person_by_card,is_person_by_category,count_she,count_he,count_they,count_nonbinary):
+    
+    singular_pronoun_totals = [count_she,count_he,count_nonbinary]
+    person_counts = [is_person_by_card,is_person_by_category]
+    
+    # 1 or fewer counts of pronouns
+    if sum([count_she,count_he,count_they,count_nonbinary]) <= 1:
+        return ['inconclusive','0_pronoun_cts']
+    
+    if sum(person_counts)==0:
+        return ['entity','0_person_ct']
+
+    if count_she > count_he:
+        return ['female','she_ct_greater_he']
+
+    if count_he > count_she:
+        return ['male','he_ct_greater_she']
+        
+        if count_they > 1 and count_nonbinary >= 1:
+            return ['non-binary','they_and_nonbinary_greater_1']
+    else:
+        return ['none','none']
