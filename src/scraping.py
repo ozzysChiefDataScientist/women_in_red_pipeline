@@ -119,6 +119,23 @@ def find_afd_stats_by_id(parsed,**kwargs):
                 return [id,a.get('href')]
             else:
                 return [id,np.NaN]
+
+
+def find_comment_author(parsedComment):
+    '''
+        Author user names can be found in the 'title' of <a> tags .
+        The user name is usually prefaced by "User:" or "Usertalk:", so we split by ":"
+        :param parsedComment:
+        :return: string with the comment's author, if found
+        '''
+    links = parsedComment.find_all("a")
+    for a in links:
+        title = a.get('title')
+        if title is not None:
+            if ("User" in title) and (":" in title):
+                return title.split(":")[1]
+    return np.NaN
+
             
 @utils.timeit
 def find_indiv_afd_by_id(parsed,**kwargs):
@@ -164,6 +181,55 @@ def generate_df_of_daily_logs(ahrefList):
     
     return logDF[logDF['last_char_as_int']].drop("last_char_as_int",axis=1).drop("last_char",axis=1)
 
+def get_first_afd_comment(parsed,**kwargs):
+    parsed_text = str(parsed)
+    text_after_header = parsed_text.split("TWL</a></span>)</dd></dl>")[1]
+    parsed_after_header = BeautifulSoup(text_after_header, 'html.parser')
+    
+    found_comments = []
+    commentAuthor = np.NaN
+    try:
+        found_comments.append(parsed.find('p'))
+        try:
+            commentAuthor = find_comment_author(found_comments[-1])
+            while pd.isnull(commentAuthor):
+                found_comments.append(found_comments[-1].find_next("p"))
+                commentAuthor = find_comment_author(found_comments[-1])
+            return [found_comments,commentAuthor]
+        except:
+            return [found_comments,np.NaN]
+    except:
+        return [np.NaN,np.NaN]
+
+def get_later_afd_comments(parsed,**kwargs):
+    parsed_text = str(parsed)
+    text_after_header = parsed_text.split("TWL</a></span>)</dd></dl>")[1]
+    parsed_after_header = BeautifulSoup(text_after_header, 'html.parser')
+    
+    found_comments = []
+    found_authors = []
+    
+    comments = parsed_after_header.find_all('li')
+    for li in comments:
+        if "AfD debates" not in str(li):
+            found_comments.append(li)
+            found_authors.append(find_comment_author(found_comments[-1]))
+        else:
+            break
+    return [found_comments, found_authors]
+
+def get_references(parsed,**kwargs):
+    reference_urls = []
+    references = parsed.find('ol', attrs={"class": "references"})
+    if references is not None:
+        for li in references.find_all('li'):
+            for a in li.find_all('a'):
+                link = a.get('href')
+                if link is not None:
+                    if 'http' in link:
+                        reference_urls.append(link)
+    return reference_urls
+
 @utils.timeit
 def open_page(bucket,key,*args,**kwargs):
     obj = s3.Object(bucket, key)
@@ -186,7 +252,7 @@ def open_page(bucket,key,*args,**kwargs):
     return results
 
 
-def store_string(string, typeOfRequest, fileName=''):
+def store_string(string, typeOfRequest, fileName='',optional_date=''):
     '''
 
     :param string: A string to write to s3
@@ -194,6 +260,12 @@ def store_string(string, typeOfRequest, fileName=''):
     :param fileName:
     :return:
     '''
+    if optional_date != '':
+        date = optional_date
+    else:
+        timestamp = datetime.datetime.now()
+        date = str(timestamp).split(" ")[0]
+    
     if fileName != '':
         s3_client.put_object(Body=bytes(string, 'utf-8'),
                          Bucket=s3_buckets['scraped'],

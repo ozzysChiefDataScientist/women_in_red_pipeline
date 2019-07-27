@@ -53,6 +53,10 @@ def lambda_handler(event, context):
         count_he = data.count_he(parsed)
         count_they = data.count_they(parsed)
         count_nonbinary = data.count_nonbinary(parsed)
+        reference_url = scraping.get_references(parsed)
+        
+        print("Reference URL")
+        print(reference_url)
 
         
         resultsDF = pd.DataFrame({"key": key,
@@ -61,7 +65,8 @@ def lambda_handler(event, context):
                                  "count_she":count_she,
                                  "count_he": count_he,
                                  "count_they": count_they,
-                                 "count_nonbinary": count_nonbinary
+                                 "count_nonbinary": count_nonbinary,
+                                 "reference_urls": [reference_url],
                                  },index=[0])
         print(resultsDF)
                                  
