@@ -19,6 +19,10 @@ How many other remarkable women are being denied stand alone Wikipedia pages bec
 ### AWS Data Processing Pipeline
 ![AWS pipeline](https://github.com/ozzysChiefDataScientist/women_in_red_pipeline/blob/master/pipeline_overview.png)
 
+![Lambda Process 1: Download Daily AFD Log ](https://github.com/ozzysChiefDataScientist/women_in_red_pipeline/blob/master/download_daily_afd_log.png)
+
+![Lambda Process 2: Extract Logs ](https://github.com/ozzysChiefDataScientist/women_in_red_pipeline/blob/master/extract_logs.png)
+
 ### S3 Directory Structure
 
 ```
