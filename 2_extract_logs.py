@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import boto3
 import csv
 import datetime
+import numpy as np
 import pandas as pd
 from src import scraping
 from src import data
