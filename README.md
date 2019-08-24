@@ -27,23 +27,33 @@ How many other remarkable women are being denied stand alone Wikipedia pages bec
 
 ```
 afd-scraped                         # — Root directory on S3
-├── Articles_for_deletion/          # — Stores daily Articles for deletion logs from Wikipedia
-├── daily_afd_analysis/             # — 
-│   ├── {date}.txt  
-├── daily_afd_log/                  # — 
-│   ├── {date folder}
-│   │   ├── {date}.txt  
-├── individual_afd_analysis/        # — 
-│   ├── {date folder}
-├── individual_afd_discussion_page/ # — 
-│   ├── {date folder}
-│   │   ├── {date}.txt  
-├── individual_afd_page/            # — 
-│   ├── {date folder}
-│   │   ├── {Wiki page}.txt 
-├── individual_afd_page_html/       # —  
-│   ├── {date folder}
-│   │   ├── {Wiki page}.txt 
+├── Articles_for_deletion/          #   SCRAPED DAILY SNAPSHOTS OF AFD MAIN PAGE
+|                                   #   URL: https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion
+│   ├── {date}.txt                  #   The date the scraping was performed
+|
+├── daily_afd_analysis/             #   COMBINES individual_afd_analysis/ FILES INTO ONE MASTER FILE
+│   ├── {date}.txt                  #   The date the scraping was performed
+|
+├── daily_afd_log/                  #   SCRAPED DAILY SNAPSHOTS OF AFD DAILY LOG PAGES
+│   ├── {date folder}               #   The date the scraping was performed
+│   │   ├── {date}.txt              #   The date of the AFD daily log
+│   │   |                           #   Example URL: https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion/Log/2019_August_24
+|
+├── individual_afd_analysis/        #   FEATURES DERIVED FROM INDIVIDUAL WIKI PAGES NOMINATED FOR DELETION
+│   ├── {date folder}               #   The date the scraping was performed
+│   │   ├── {Wiki page ID}.txt      #   A unique identifier of the page nominated for deletion
+|
+├── individual_afd_discussion_page/ #   SCRAPED DAILY SNAPSHOT OF AFD DISCUSSION FOR AN INDIVIDUAL WIKI PAGE
+│   ├── {date folder}               #   The date the scraping was performed
+│   │   ├── {date}.txt              #   A unique identifier of the page nominated for deletion
+|
+├── individual_afd_page/            #   METADATA ON INDIVIDUAL WIKI PAGES NOMINATED FOR DELETION
+│   ├── {date folder}               #   The date the scraping was performed
+│   │   ├── {Wiki page ID}.txt      #   A unique identifier of the page nominated for deletion
+|
+├── individual_afd_page_html/       #   SCRAPED DAILY SNAPSHOT OF WIKI PAGES NOMINATED FOR DELETION
+│   ├── {date folder}               #   The date the scraping was performed
+│   │   ├── {Wiki page ID}.txt      #   A unique identifier of the page nominated for deletion
 ```
 
 
