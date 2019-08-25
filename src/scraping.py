@@ -8,6 +8,7 @@ import re
 import requests
 import time
 from src import utils
+from src import data
 
 s3_buckets = {"scraped":"afd-scraped"}
 outputDirectories = {"Wikipedia:Articles_for_deletion": "Articles_for_deletion/",
@@ -31,23 +32,18 @@ timestamp = datetime.datetime.now()
 date = str(timestamp).split(" ")[0]
 
 def create_s3_directories():
-    # Call S3 to list current buckets
+    '''
+        Create required S3 buckets if they do not already exist
+        '''
     response = s3_client.list_buckets()
-    # Get a list of all bucket names from the response
-    buckets = [bucket['Name'] for bucket in response['Buckets']]
-    print("Buckets: {}".format(buckets))
-
-    for dir in s3_buckets.values():
-        if dir not in buckets:
-            dir = dir.replace("/","").replace("_","-").lower()
-            print(dir)
-            s3_client.create_bucket(Bucket=dir )
-
-    # Call S3 to list current buckets
-    response = s3_client.list_buckets()
-    # Get a list of all bucket names from the response
-    buckets = [bucket['Name'] for bucket in response['Buckets']]
-    print("Buckets: {}".format(buckets))
+    
+    current_buckets = [bucket['Name'] for bucket in response['Buckets']]
+    print("Current Buckets: {}".format(current_buckets))
+    
+    for required_bucket in s3_buckets.values():
+        if required_bucket not in current_buckets:
+            s3_client.create_bucket(Bucket=required_bucket )
+            print("Created {} bucket".format(required_bucket))
 
 
 @utils.timeit
@@ -155,6 +151,8 @@ def find_indiv_afd_by_id(parsed,**kwargs):
             else:
                 return [id,np.NaN]
 
+
+
 def generate_df_of_daily_logs(ahrefList):
     '''
     Search list of href attributes to identify links that contain "_deletion/Log",
@@ -181,30 +179,62 @@ def generate_df_of_daily_logs(ahrefList):
     
     return logDF[logDF['last_char_as_int']].drop("last_char_as_int",axis=1).drop("last_char",axis=1)
 
+def identify_archived_debate(parsed):
+    parsed_text = str(parsed)
+    if "The following discussion is an archived debate" in parsed_text:
+        return True
+    else:
+        return False
+
+
+
 def get_first_afd_comment(parsed,**kwargs):
     parsed_text = str(parsed)
-    text_after_header = parsed_text.split("TWL</a></span>)</dd></dl>")[1]
-    parsed_after_header = BeautifulSoup(text_after_header, 'html.parser')
     
     found_comments = []
     commentAuthor = np.NaN
-    try:
-        found_comments.append(parsed.find('p'))
+    
+    results = [np.NaN,np.NaN]
+
+    
+    if "TWL</a></span>)</dd></dl>" in parsed_text:
+        text_after_header = parsed_text.split("TWL</a></span>)</dd></dl>")[1]
+        parsed_after_header = BeautifulSoup(text_after_header, 'html.parser')
         try:
-            commentAuthor = find_comment_author(found_comments[-1])
-            while pd.isnull(commentAuthor):
-                found_comments.append(found_comments[-1].find_next("p"))
+            found_comments.append(parsed_after_header.find('p'))
+            try:
                 commentAuthor = find_comment_author(found_comments[-1])
-            return [found_comments,commentAuthor]
+
+                while pd.isnull(commentAuthor):
+                    if found_comments[-1].find_next("p") is not None:
+                        found_comments.append(found_comments[-1].find_next("p"))
+                        commentAuthor = find_comment_author(found_comments[-1])
+                    else:
+                        commentAuthor = "NA"
+            except:
+                results = [found_comments,np.NaN]
         except:
-            return [found_comments,np.NaN]
-    except:
-        return [np.NaN,np.NaN]
+            results = [np.NaN,np.NaN]
+
+    if len(found_comments) >= 1:
+        found_comments = [str(x) for x in found_comments]
+        final_comments = ' '.join(found_comments)
+        results[0] = final_comments
+    
+    if pd.isnull(commentAuthor)==False and commentAuthor != "NA":
+        results[1] = commentAuthor
+    return results
+
+
 
 def get_later_afd_comments(parsed,**kwargs):
     parsed_text = str(parsed)
-    text_after_header = parsed_text.split("TWL</a></span>)</dd></dl>")[1]
-    parsed_after_header = BeautifulSoup(text_after_header, 'html.parser')
+        
+    if "TWL</a></span>)</dd></dl>" in parsed_text:
+        text_after_header = parsed_text.split("TWL</a></span>)</dd></dl>")[1]
+        parsed_after_header = BeautifulSoup(text_after_header, 'html.parser')
+    else:
+        return [np.NaN,np.NaN]
     
     found_comments = []
     found_authors = []
@@ -281,47 +311,28 @@ def store_string(string, typeOfRequest, fileName='',optional_date=''):
 
 
 
-def store_html(html_text,typeOfRequest,dataDirectory,output,fileName=''):
+def store_html(html_text,typeOfRequest,fileName=''):
     '''
 
     :param html_text:
     :param typeOfRequest:
-    :param dataDirectory:
-    :param output:
     :param fileName:
     :return:
     '''
     start = time.time()
     timestamp = datetime.datetime.now()
     date = str(timestamp).split(" ")[0]
-    print(output)
     
     if typeOfRequest == "Wikipedia:Articles_for_deletion":
-        
-        if output=="local":
-            log_file = open(dataDirectory + "scraped/"+outputDirectories[typeOfRequest] + date + ".txt", "w")
-            log_file.write(html_text)
-            log_file.close()
-        
-        if output == 's3':
-            s3_client.put_object( Body=bytes(html_text,'utf-8'),
+
+        s3_client.put_object( Body=bytes(html_text,'utf-8'),
                                  Bucket = s3_buckets['scraped'],
                                  Key = outputDirectories[typeOfRequest]+date+".txt",
                                  )
     else:
-        if output=="local":
-            if os.path.exists(dataDirectory + "scraped/" + outputDirectories[typeOfRequest] + date)==False:
-                os.mkdir(dataDirectory + "scraped/" + outputDirectories[typeOfRequest] + date)
-        
-            log_file = open(dataDirectory + "scraped/" + outputDirectories[typeOfRequest] + date +"/" + fileName+ ".txt", "w")
-            log_file.write(str(html_text))
-            log_file.close()
-        
-        if output=='s3':
-            s3_client.put_object(Body=bytes(html_text, 'utf-8'),
-                                 Bucket=s3_buckets['scraped'],
-                                 Key=outputDirectories[typeOfRequest] + date +"/" + fileName + ".txt",
-                                 )
+        s3_client.put_object(Body=bytes(html_text, 'utf-8'),
+                             Bucket=s3_buckets['scraped'],
+                             Key=outputDirectories[typeOfRequest] + date +"/" + fileName + ".txt",
+                             )
 
     end = time.time()
-    print("storing html extract_statstime: {}".format(end - start))
