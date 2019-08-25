@@ -313,26 +313,25 @@ def store_string(string, typeOfRequest, fileName='',optional_date=''):
 
 def store_html(html_text,typeOfRequest,fileName=''):
     '''
-
-    :param html_text:
-    :param typeOfRequest:
-    :param fileName:
-    :return:
+    Store a scraped HTML file to S3
+    :param html_text: A scraped web page
+    :param typeOfRequest: String indicating where to store the HTML file
+    :param fileName: String indicating how to name the saved file
     '''
     start = time.time()
     timestamp = datetime.datetime.now()
     date = str(timestamp).split(" ")[0]
     
     if typeOfRequest == "Wikipedia:Articles_for_deletion":
-
+        
         s3_client.put_object( Body=bytes(html_text,'utf-8'),
-                                 Bucket = s3_buckets['scraped'],
-                                 Key = outputDirectories[typeOfRequest]+date+".txt",
-                                 )
+                             Bucket = s3_buckets['scraped'],
+                             Key = outputDirectories[typeOfRequest]+date+".txt",
+                             )
     else:
         s3_client.put_object(Body=bytes(html_text, 'utf-8'),
                              Bucket=s3_buckets['scraped'],
                              Key=outputDirectories[typeOfRequest] + date +"/" + fileName + ".txt",
                              )
-
+    
     end = time.time()
