@@ -161,7 +161,7 @@ def generate_df_of_daily_logs(ahrefList):
     :return:  A list of links to article for deletion pages
     '''
     logs = [x for x in ahrefList if "_deletion/Log" in x]
-    logs = list(set(logs))
+    logs = sorted(list(set(logs)))
     logDF = pd.DataFrame({"log_url":logs})
     
     # urls we want always end with date as in 'February_1'
@@ -177,7 +177,7 @@ def generate_df_of_daily_logs(ahrefList):
             return False
     logDF['last_char_as_int'] = logDF['last_char'].apply(lambda x: convertToInt(x))
     
-    return logDF[logDF['last_char_as_int']].drop("last_char_as_int",axis=1).drop("last_char",axis=1)
+    return logDF[logDF['last_char_as_int']].drop(["last_char_as_int","last_char"], axis=1)
 
 def identify_archived_debate(parsed):
     parsed_text = str(parsed)
