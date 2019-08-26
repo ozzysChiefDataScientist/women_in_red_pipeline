@@ -308,12 +308,10 @@ def store_string(string, typeOfRequest, fileName='',optional_date=''):
                              Key=outputDirectories[typeOfRequest] + date + ".txt",
                              )
 
-
-
-
-def store_html(html_text,typeOfRequest,fileName=''):
+def store_html(s3_client, html_text, typeOfRequest, fileName=''):
     '''
     Store a scraped HTML file to S3
+    :param s3_client: boto3 client object
     :param html_text: A scraped web page
     :param typeOfRequest: String indicating where to store the HTML file
     :param fileName: String indicating how to name the saved file
@@ -333,5 +331,5 @@ def store_html(html_text,typeOfRequest,fileName=''):
                              Bucket=s3_buckets['scraped'],
                              Key=outputDirectories[typeOfRequest] + date +"/" + fileName + ".txt",
                              )
-    
+
     end = time.time()
