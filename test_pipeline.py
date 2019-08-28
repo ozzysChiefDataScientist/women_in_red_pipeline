@@ -20,18 +20,28 @@ afd_homepage_parsed = BeautifulSoup(afd_html, 'html.parser')
 daily_afd_log___2019_08_12 = open('./tests/files/daily_afd_log/2019-08-25/2019_August_12.html',
                 'r', encoding='utf-8')
 daily_afd_log___2019_08_12_html = daily_afd_log___2019_08_12.read()
+daily_afd_log___2019_08_12_parsed = BeautifulSoup(daily_afd_log___2019_08_12_html, 'html.parser')
 
 
+log_id_urls = scraping.extract_log_id_and_url(daily_afd_log___2019_08_12_parsed)
 
 def test_extract_ahref():
     links = scraping.extract_ahref(afd_homepage_parsed)
     assert links[0][0:43] == 'https://en.wikipedia.org/w/load.php?lang=en'
     assert len(links)==832
 
+def test_extract_log_id_and_url():
+    log_id_urls = scraping.extract_log_id_and_url(daily_afd_log___2019_08_12_parsed)
+    assert log_id_urls[0] == 'Jeff_Sebastian___/w/index.php?title=Jeff_Sebastian&action=edit&redlink=1'
+    assert log_id_urls[1] == 'Robert_Farber_(artist)___/wiki/Robert_Farber_(artist)'
+
+
 def test_generate_df_of_daily_logs():
     links = scraping.extract_ahref(afd_homepage_parsed)
     df_daily_logs = scraping.generate_df_of_daily_logs(links)
     assert df_daily_logs['log_url'].values[0] == 'https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion/Log/2019_August_12'
+
+
 
 @mock_s3
 def test_1_download_daily_afd_log():
