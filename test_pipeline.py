@@ -35,6 +35,15 @@ def test_extract_log_id_and_url():
     assert log_id_urls[0] == 'Jeff_Sebastian___/w/index.php?title=Jeff_Sebastian&action=edit&redlink=1'
     assert log_id_urls[1] == 'Robert_Farber_(artist)___/wiki/Robert_Farber_(artist)'
 
+def test_find_indiv_afd_by_id():
+    indiv_afd_id = scraping.find_indiv_afd_by_id(daily_afd_log___2019_08_12_parsed, id='Jeff_Sebastian')
+    assert indiv_afd_id == ['Jeff_Sebastian', '/wiki/Wikipedia:Articles_for_deletion/Jeff_Sebastian']
+
+def test_find_afd_stats_by_id():
+    afd_stats = scraping.find_afd_stats_by_id(daily_afd_log___2019_08_12_parsed, id='Jeff_Sebastian')
+    assert afd_stats == ['Jeff_Sebastian',
+                         'https://tools.wmflabs.org/jackbot/snottywong/cgi-bin/votecounter.cgi?page=Wikipedia:Articles_for_deletion/Jeff_Sebastian']
+
 
 def test_generate_df_of_daily_logs():
     links = scraping.extract_ahref(afd_homepage_parsed)
