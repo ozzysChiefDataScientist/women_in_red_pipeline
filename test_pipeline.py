@@ -58,6 +58,9 @@ def test_generate_df_of_daily_logs():
     assert df_daily_logs['log_url'].values[0] == 'https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion/Log/2019_August_12'
 
 
+def test_get_references():
+    assert scraping.get_references(individual_afd_page_html___jeff_sebastian_parsed) == []
+
 def test_is_person_by_card():
     assert math.isnan(data.is_person_by_card(individual_afd_page_html___jeff_sebastian_parsed))
 
