@@ -61,6 +61,9 @@ def test_generate_df_of_daily_logs():
 def test_is_person_by_card():
     assert math.isnan(data.is_person_by_card(individual_afd_page_html___jeff_sebastian_parsed))
 
+def test_is_person_by_category():
+    assert math.isnan(data.is_person_by_category(individual_afd_page_html___jeff_sebastian_parsed))
+
 @mock_s3
 def test_1_download_daily_afd_log():
     '''
