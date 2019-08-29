@@ -2,9 +2,12 @@ import boto3
 from bs4 import BeautifulSoup
 import datetime
 from freezegun import freeze_time
+import math
 from moto import mock_s3
+import numpy as np
 import pandas as pd
 import pytest
+from src import data
 from src import scraping
 
 wikipedia_domain = 'https://en.wikipedia.org/'
@@ -21,9 +24,14 @@ daily_afd_log___2019_08_12 = open('./tests/files/daily_afd_log/2019-08-25/2019_A
                 'r', encoding='utf-8')
 daily_afd_log___2019_08_12_html = daily_afd_log___2019_08_12.read()
 daily_afd_log___2019_08_12_parsed = BeautifulSoup(daily_afd_log___2019_08_12_html, 'html.parser')
-
-
 log_id_urls = scraping.extract_log_id_and_url(daily_afd_log___2019_08_12_parsed)
+
+# read in sample individual wiki page
+individual_afd_page_html___jeff_sebastian = open('./tests/files/individual_afd_page_html/2019-08-25/Jeff_Sebastian.txt',
+                'r', encoding='utf-8')
+individual_afd_page_html___jeff_sebastian = individual_afd_page_html___jeff_sebastian.read()
+individual_afd_page_html___jeff_sebastian_parsed = BeautifulSoup(individual_afd_page_html___jeff_sebastian, 'html.parser')
+
 
 def test_extract_ahref():
     links = scraping.extract_ahref(afd_homepage_parsed)
@@ -44,13 +52,14 @@ def test_find_afd_stats_by_id():
     assert afd_stats == ['Jeff_Sebastian',
                          'https://tools.wmflabs.org/jackbot/snottywong/cgi-bin/votecounter.cgi?page=Wikipedia:Articles_for_deletion/Jeff_Sebastian']
 
-
 def test_generate_df_of_daily_logs():
     links = scraping.extract_ahref(afd_homepage_parsed)
     df_daily_logs = scraping.generate_df_of_daily_logs(links)
     assert df_daily_logs['log_url'].values[0] == 'https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion/Log/2019_August_12'
 
 
+def test_is_person_by_card():
+    assert math.isnan(data.is_person_by_card(individual_afd_page_html___jeff_sebastian_parsed))
 
 @mock_s3
 def test_1_download_daily_afd_log():
