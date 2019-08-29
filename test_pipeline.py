@@ -64,6 +64,9 @@ def test_is_person_by_card():
 def test_is_person_by_category():
     assert math.isnan(data.is_person_by_category(individual_afd_page_html___jeff_sebastian_parsed))
 
+def test_count_he():
+    assert data.count_he(individual_afd_page_html___jeff_sebastian_parsed) == 0
+
 @mock_s3
 def test_1_download_daily_afd_log():
     '''
