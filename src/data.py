@@ -4,6 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import boto3
+import urllib
 
 
 def append_dataframes(master_df,new_df):
@@ -12,6 +13,15 @@ def append_dataframes(master_df,new_df):
     else:
         master_df = master_df.append(new_df)
     return master_df
+
+def decode_s3_key(s3_key_name):
+    '''
+    Replace HTML escape characters with their single character equivalent
+    '''
+    return urllib.parse.unquote_plus(s3_key_name)
+
+def flatten_list(l):
+    return [item for sublist in l for item in sublist]
 
 def generate_df_of_files_in_directory(data_directory,data_type,date):
     afd_pages = os.listdir("{}scraped/{}/{}/".format(data_directory,data_type, date))
@@ -98,14 +108,27 @@ def is_person_by_category(wikiHtml,**kwargs):
         print('could not find table')
     return is_person
 
-def count_she(parsedHTML,**kwargs):
+def count_pronouns(parsedHTML,pronoun_to_search, **kwargs):
+    '''
+    Counts the number of instances of pronouns in an HTML file
+    :param parsedHTML: HTML file parsed by BeautifulSoup
+    :param pronoun_to_search: String representing a pronoun to count
+    '''
+    pronoun_dict = {"she":['she','her'],
+                    "he": ['he','his'],
+                    "they": ['they','their'],
+                    "nonbinary": ['nonbinary']}
+
     text =  parsedHTML.get_text()
     count = 0
-    try:
-        count = count + text.lower().count(' she ')
-        count = count + text.lower().count(' her ')
-    except:
-        print("could not count")
+
+    if len(pronoun_dict.get(pronoun_to_search,[])) > 0:
+        for pronoun in pronoun_dict[pronoun_to_search]:
+            count = count + text.lower().count(' {} '.format(pronoun))
+
+    else:
+        raise ValueError('{} does not exist in dictionary'.format(pronoun_to_search))
+
     return count
 
 def count_he(parsedHTML,**kwargs):

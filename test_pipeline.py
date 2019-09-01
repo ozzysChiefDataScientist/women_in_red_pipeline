@@ -70,6 +70,16 @@ def test_is_person_by_category():
 def test_count_he():
     assert data.count_he(individual_afd_page_html___jeff_sebastian_parsed) == 0
 
+def test_count_pronouns():
+    assert data.count_pronouns(individual_afd_page_html___jeff_sebastian_parsed,'he') == 0
+    assert data.count_pronouns(individual_afd_page_html___jeff_sebastian_parsed,'she') == 0
+    assert data.count_pronouns(individual_afd_page_html___jeff_sebastian_parsed,'they') == 0
+    assert data.count_pronouns(individual_afd_page_html___jeff_sebastian_parsed,'nonbinary') == 0
+
+def test_decode_s3_key():
+    key = 'individual_afd_page/2019-08-31/Scott_Horton_%28radio_host%29.txt'
+    assert data.decode_s3_key(key) == 'individual_afd_page/2019-08-31/Scott_Horton_(radio_host).txt'
+
 @mock_s3
 def test_1_download_daily_afd_log():
     '''
