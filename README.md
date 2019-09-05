@@ -23,6 +23,9 @@ How many other remarkable women are being denied stand alone Wikipedia pages bec
 
 ![Lambda Process 2: Extract Logs ](https://github.com/ozzysChiefDataScientist/women_in_red_pipeline/blob/master/extract_logs.png)
 
+![Lambda Process 3: Download Individual AFD Page ](https://github.com/ozzysChiefDataScientist/women_in_red_pipeline/blob/master/download_indiv_afd_page.png)
+
+
 ### S3 Directory Structure
 
 ```
